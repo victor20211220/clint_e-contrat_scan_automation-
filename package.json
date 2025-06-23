@@ -1,0 +1,30 @@
+{
+  "name": "contract-parser",
+  "version": "1.0.0",
+  "description": "Parse DOCX contract files and extract data to CSV",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1",
+    "xml2js": "^0.6.2",
+    "openai": "^4.28.0",
+    "dotenv": "^16.4.5"
+  },
+  "keywords": [
+    "docx",
+    "parser",
+    "csv",
+    "contracts",
+    "openai",
+    "automation"
+  ],
+  "author": "",
+  "license": "ISC",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
