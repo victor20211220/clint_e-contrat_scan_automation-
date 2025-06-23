@@ -1,5 +1,4 @@
 const fs = require('fs');
-const path = require('path');
 const OpenAI = require('openai');
 const { parseContractFiles } = require('./parse-files');
 
@@ -93,7 +92,7 @@ function extractBuyerSeller(tableArray) {
 function findSentencesWithDaysExpression(tableArray) {
     const sentences = [];
     // Updated regex to handle all spacing variations - removed requirement for ending dot
-    const daysPattern = /[^.]*?(?:\(?\s*\d+\s*\)?\s*days\s+prior\s+to)[^.]*/gi;
+    const daysPattern = /[^.]*\(?\s*\d+\s*\)?\s*days\s+prior\s+to[^.]*/gi;
 
     // Process each row - only check the second cell (index 1) which contains the array
     for (const row of tableArray) {
