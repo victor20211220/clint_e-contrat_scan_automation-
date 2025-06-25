@@ -1,4 +1,4 @@
 /.env
-/database.csv
 /node_modules/
 .idea
+/src/contracts/
