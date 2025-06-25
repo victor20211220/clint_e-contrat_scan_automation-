@@ -2,6 +2,7 @@ import express, {Request, Response} from 'express';
 import Nomination from '../models/Nomination';
 import Setting from '../models/Setting';
 import {AuthRequest, protect} from '../middleware/authMiddleware';
+import {scanNominationsFolder} from '../scan_nominations.js';
 import dayjs from "dayjs";
 
 const router = express.Router();
@@ -226,7 +227,27 @@ router.get('/:id/send-all-content', protect, async (req: Request, res: Response)
         const company = setting.value;
         const receiver = company === nomination.buyer ? nomination.seller : nomination.buyer;
 
-        const content = `Dear ${receiver}\n\nPlease note that we hereby nominate the following:\n• Cargo Quantity:  "EMPTY"\n• LNG Shop: "EMPTY"\n• Arrival Period: ${nomination.arrival_period.toDateString()}\n• Loading/Discharge Port "EMPTY"\n\nand reserve our rights to renominate as per agreed terms.\nBest Regards, ${company}`;
+        const getKeywordValue = (type: string) => {
+            return Nomination.findOne({
+                contract_name: nomination.contract_name,
+                nomination_type: type,
+            }).then((match) => {
+                if (match?.nomination_keyword) {
+                    const parts = match.nomination_keyword.split('as');
+                    return parts.length > 1 ? parts[1].trim() : 'Input Data';
+                }
+                return 'Input Data';
+            });
+        };
+
+        const [cargoQuantity, lngShop, loadingPort, dischargePort] = await Promise.all([
+            getKeywordValue('Cargo Quantity'),
+            getKeywordValue('LNG Ship'),
+            getKeywordValue('Loading Port'),
+            getKeywordValue('Discharge Port'),
+        ]);
+
+        const content = `Dear ${receiver}\n\nPlease note that we hereby nominate the following:\n• Cargo Quantity: "${cargoQuantity}"\n• LNG Ship: "${lngShop}"\n• Arrival Period: ${nomination.arrival_period.toDateString()}\n• Loading Port: "${loadingPort}"\n• Discharge Port: "${dischargePort}"\n\nand reserve our rights to renominate as per agreed terms.\nBest Regards, ${company}`;
 
         res.json({content});
     } catch (err) {
@@ -268,6 +289,17 @@ router.delete('/:id', protect, async (req: Request, res: Response): Promise<void
     } catch (err) {
         console.error(err);
         res.status(500).json({message: 'Failed to delete'});
+    }
+});
+
+
+router.post('/scan', protect, async (req, res) => {
+    try {
+        const inserted = await scanNominationsFolder();
+        res.json({message: `Scanned ${inserted.length} new nominations`, count: inserted.length});
+    } catch (err) {
+        console.error('Scan failed:', err);
+        res.status(500).json({message: 'Scan failed'});
     }
 });
 
