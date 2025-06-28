@@ -9,7 +9,7 @@ dotenv.config();
 const app = express();
 // Allow requests from your Vite frontend
 app.use(cors({
-  origin: process.env.CLIENT_URL, // adjust if your frontend runs elsewhere
+  origin: true, // process.env.CLIENT_URL
   credentials: true
 }));
 
