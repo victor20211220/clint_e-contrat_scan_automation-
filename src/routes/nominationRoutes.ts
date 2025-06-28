@@ -268,12 +268,32 @@ router.put('/:id', protect, async (req: Request, res: Response): Promise<void> =
     }
 });
 
-// Assign user to a nomination
+// Assign user to a nomination and all nominations with same contract_name
 router.put('/:id/assign', protect, async (req: Request, res: Response): Promise<void> => {
     try {
         const {user_id} = req.body;
-        const nom = await Nomination.findByIdAndUpdate(req.params.id, {user_id}, {new: true});
-        res.json(nom);
+
+        // First, get the nomination to find its contract_name
+        const nomination = await Nomination.findById(req.params.id);
+        if (!nomination) {
+            res.status(404).json({message: 'Nomination not found'});
+            return;
+        }
+
+        // Update all nominations with the same contract_name
+        const result = await Nomination.updateMany(
+            {contract_name: nomination.contract_name},
+            {user_id},
+            {new: true}
+        );
+
+        // Get the updated nominations to return
+        const updatedNominations = await Nomination.find({contract_name: nomination.contract_name});
+
+        res.json({
+            message: `Updated ${result.modifiedCount} nominations`,
+            nominations: updatedNominations
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({message: 'Failed to assign user'});
