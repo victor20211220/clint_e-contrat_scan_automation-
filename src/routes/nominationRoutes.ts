@@ -35,7 +35,9 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
         const startOfToday = today.startOf('day').toDate();
         const endOfToday = today.endOf('day').toDate();
         const startOfWeek = today.startOf('week').toDate();
+        const endOfWeek = today.endOf('week').toDate();
         const startOfMonth = today.startOf('month').toDate();
+        const endOfMonth = today.endOf('month').toDate();
         let filters: any = {};
         let nomination_date = null;
         switch (status) {
@@ -47,11 +49,11 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
                 }
                 break;
             case "this_month":
-                nomination_date = {$gte: startOfMonth, $lte: endOfToday};
+                nomination_date = {$gte: startOfMonth, $lte: endOfMonth};
                 break;
 
             case "this_week":
-                nomination_date = {$gte: startOfWeek, $lte: endOfToday};
+                nomination_date = {$gte: startOfWeek, $lte: endOfWeek};
                 break;
 
             case "on_today":
@@ -59,7 +61,7 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
                 break;
 
             case "overdue":
-                nomination_date = {$gt: endOfToday};
+                nomination_date = {$lte: endOfToday};
                 break;
         }
         if (nomination_date) {
@@ -103,16 +105,18 @@ router.get('/stats/summary', protect, async (req: Request, res: Response): Promi
         const startOfToday = today.startOf('day').toDate();
         const endOfToday = today.endOf('day').toDate();
         const startOfWeek = today.startOf('week').toDate();
+        const endOfWeek = today.endOf('week').toDate();
         const startOfMonth = today.startOf('month').toDate();
+        const endOfMonth = today.endOf('month').toDate();
 
         const all = await Nomination.countDocuments();
         const this_month = await Nomination.countDocuments({
-            nomination_date: {$gte: startOfMonth, $lte: endOfToday},
+            nomination_date: {$gte: startOfMonth, $lte: endOfMonth},
             sent: false,
             received: false,
         });
         const this_week = await Nomination.countDocuments({
-            nomination_date: {$gte: startOfWeek, $lte: endOfToday},
+            nomination_date: {$gte: startOfWeek, $lte: endOfWeek},
             sent: false,
             received: false,
         });
@@ -128,7 +132,7 @@ router.get('/stats/summary', protect, async (req: Request, res: Response): Promi
         });
 
         const overdue = await Nomination.countDocuments({
-            nomination_date: {$gt: endOfToday},
+            nomination_date: {$lte: endOfToday},
             sent: false,
             received: false,
         });
