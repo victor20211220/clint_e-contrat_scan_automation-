@@ -4,6 +4,7 @@ import Setting from '../models/Setting';
 import {AuthRequest, protect} from '../middleware/authMiddleware';
 import {scanNominationsFolder} from '../scan_nominations.js';
 import dayjs from "dayjs";
+import {getSettingValue} from "../utils/helpers";
 
 const router = express.Router();
 
@@ -144,27 +145,51 @@ router.get('/stats/summary', protect, async (req: Request, res: Response): Promi
     }
 });
 
-// Bulk update nominations as sent or received
 router.put('/bulk-update-status', protect, async (req: Request, res: Response): Promise<void> => {
     try {
-        const {ids, action} = req.body; // action: "sent" or "received"
+        const {ids, action} = req.body;
 
-        if (!Array.isArray(ids) || !['sent', 'received'].includes(action)) {
+        if (!Array.isArray(ids) || !['sent', 'received', 'delete'].includes(action)) {
             res.status(400).json({message: 'Invalid payload'});
             return;
         }
 
-        const update: any = {};
-        update[action] = true;
-        if (action === "sent") update['received'] = false;
-        if (action === "received") update['sent'] = false;
+        if (action === 'delete') {
+            const result = await Nomination.deleteMany({_id: {$in: ids}});
+            res.json({message: `Deleted ${result.deletedCount} nominations`});
+            return;
+        }
 
-        await Nomination.updateMany({_id: {$in: ids}}, {$set: update});
+        const companyName = await getSettingValue('company_name');
+        if (!companyName) {
+            res.status(500).json({message: 'Company name not configured'});
+            return;
+        }
 
-        res.json({message: `Marked ${ids.length} nominations as ${action}`});
+        const isSent = action === 'sent';
+
+        const query = {
+            _id: {$in: ids},
+            $or: [
+                {
+                    for_seller_or_buyer: 'buyer',
+                    buyer: isSent ? companyName : {$ne: companyName}
+                },
+                {
+                    for_seller_or_buyer: 'seller',
+                    seller: isSent ? companyName : {$ne: companyName}
+                }
+            ]
+        };
+
+        const update = isSent ? {sent: true} : {received: true};
+
+        const result = await Nomination.updateMany(query, {$set: update});
+        res.json({message: `Updated ${result.modifiedCount} nominations as ${action}`});
+
     } catch (err) {
         console.error(err);
-        res.status(500).json({message: 'Bulk update failed'});
+        res.status(500).json({message: 'Bulk action failed'});
     }
 });
 

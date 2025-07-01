@@ -124,7 +124,8 @@ async function processSingleContract(contract) {
             nomination_date: calculateNominationDate(arrival, days),
             nomination_type: n.nomination_type,
             nomination_keyword: keyword,
-            for_seller_or_buyer: n.day_sentence.toLowerCase().includes('seller') ? 'seller' : 'buyer'
+            nomination_description: n.day_sentence,
+            for_seller_or_buyer: n.day_sentence.toLowerCase().includes('seller') ? 'seller' : 'buyer',
         };
     }));
 }

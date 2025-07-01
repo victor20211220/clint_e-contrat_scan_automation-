@@ -8,6 +8,7 @@ const NominationSchema = new mongoose.Schema({
   nomination_date: { type: Date, required: true },
   nomination_type: { type: String, required: true },
   nomination_keyword: { type: String, required: true },
+  nomination_description: { type: String, required: true },
   for_seller_or_buyer: { type: String, enum: ['seller', 'buyer'], default: 'seller' },
   user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   sent: { type: Boolean, default: false },
