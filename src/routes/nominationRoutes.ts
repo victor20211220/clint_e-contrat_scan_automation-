@@ -62,7 +62,7 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
                 break;
 
             case "overdue":
-                nomination_date = {$lte: endOfToday};
+                nomination_date = {$lt: startOfToday};
                 break;
         }
         if (nomination_date) {
@@ -133,7 +133,7 @@ router.get('/stats/summary', protect, async (req: Request, res: Response): Promi
         });
 
         const overdue = await Nomination.countDocuments({
-            nomination_date: {$lte: endOfToday},
+            nomination_date: {$lt: startOfToday},
             sent: false,
             received: false,
         });
