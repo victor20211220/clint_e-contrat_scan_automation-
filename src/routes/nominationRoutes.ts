@@ -185,6 +185,10 @@ router.put('/bulk-update-status', protect, async (req: Request, res: Response): 
         const update = isSent ? {sent: true} : {received: true};
 
         const result = await Nomination.updateMany(query, {$set: update});
+        if (ids.length === 1 && result.modifiedCount === 0) {
+            res.status(400).json({message: "Cannot complete action"});
+        }
+
         res.json({message: `Updated ${result.modifiedCount} nominations as ${action}`});
 
     } catch (err) {
