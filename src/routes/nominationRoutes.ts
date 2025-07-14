@@ -26,7 +26,7 @@ router.get('/', protect, async (req: Request, res: Response): Promise<void> => {
             user_id,
             page = 1,
             limit = 10,
-            sort_by = 'contract_name',
+            sort_by = 'nomination_date',
             sort_order = 'asc',
             status,
         } = req.query;
